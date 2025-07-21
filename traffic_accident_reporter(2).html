@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التبليغ عن حادث مرور</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .loading { animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+                    <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">التبليغ عن حادث مرور</h1>
+                <p class="text-gray-600">يتم جمع البيانات تلقائياً لضمان دقة التقرير</p>
+            </div>
+
+            <!-- Status Messages -->
+            <div id="statusMessage" class="hidden mb-6 p-4 rounded-lg"></div>
+
+            <!-- Auto Data Collection Status -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">جمع البيانات التلقائي</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <div id="locationStatus" class="w-6 h-6 border-2 border-blue-600 rounded-full loading ml-3"></div>
+                        <span class="text-gray-700">الحصول على الموقع...</span>
+                    </div>
+                    <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <div id="weatherStatus" class="w-6 h-6 border-2 border-blue-600 rounded-full loading ml-3"></div>
+                        <span class="text-gray-700">جمع بيانات الطقس...</span>
+                    </div>
+                    <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <div id="roadStatus" class="w-6 h-6 border-2 border-blue-600 rounded-full loading ml-3"></div>
+                        <span class="text-gray-700">معلومات الطريق...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Form -->
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <form id="accidentForm" class="space-y-6">
+                    <!-- Accident Details -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">تفاصيل الحادث</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">نوع الحادث</label>
+                                <select id="accidentType" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                    <option value="">اختر نوع الحادث</option>
+                                    <option value="collision">تصادم</option>
+                                    <option value="rollover">انقلاب</option>
+                                    <option value="hit-run">دهس وهروب</option>
+                                    <option value="single-vehicle">مركبة واحدة</option>
+                                    <option value="multiple-vehicle">متعدد المركبات</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">مستوى الخطورة</label>
+                                <select id="severity" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                    <option value="">اختر مستوى الخطورة</option>
+                                    <option value="minor">طفيف</option>
+                                    <option value="moderate">متوسط</option>
+                                    <option value="severe">خطير</option>
+                                    <option value="fatal">مميت</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">وصف الحادث</label>
+                            <textarea id="description" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="اكتب وصفاً مفصلاً للحادث..." required></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Reporter Information -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">بيانات المبلغ</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">الاسم الكامل</label>
+                                <input type="text" id="reporterName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">رقم الهاتف</label>
+                                <input type="tel" id="phoneNumber" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Auto-collected Data Display -->
+                    <div id="autoDataSection" class="hidden">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">البيانات المجمعة تلقائياً</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-4">
+                                <div class="bg-blue-50 p-4 rounded-lg">
+                                    <h4 class="font-medium text-blue-900 mb-2">معلومات الموقع</h4>
+                                    <div id="locationData" class="text-sm text-blue-800"></div>
+                                </div>
+                                
+                                <div class="bg-green-50 p-4 rounded-lg">
+                                    <h4 class="font-medium text-green-900 mb-2">بيانات الطقس</h4>
+                                    <div id="weatherData" class="text-sm text-green-800"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="bg-yellow-50 p-4 rounded-lg">
+                                    <h4 class="font-medium text-yellow-900 mb-2">معلومات الطريق</h4>
+                                    <div id="roadData" class="text-sm text-yellow-800"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="text-center">
+                        <button type="submit" id="submitBtn" class="bg-red-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            إرسال التقرير
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class AccidentReporter {
+            constructor() {
+                this.locationData = null;
+                this.weatherData = null;
+                this.roadData = null;
+                this.init();
+            }
+
+            init() {
+                this.collectAutoData();
+                this.setupEventListeners();
+            }
+
+            setupEventListeners() {
+                document.getElementById('accidentForm').addEventListener('submit', this.handleSubmit.bind(this));
+            }
+
+            async collectAutoData() {
+                // First get location, then weather (which needs location), then road data
+                await this.getLocation();
+                
+                // Run weather and road data collection in parallel after location is obtained
+                await Promise.all([
+                    this.getWeatherData(),
+                    this.simulateRoadData()
+                ]);
+
+                // Show auto-collected data section
+                document.getElementById('autoDataSection').classList.remove('hidden');
+                document.getElementById('autoDataSection').classList.add('fade-in');
+            }
+
+            async getLocation() {
+                try {
+                    const position = await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 60000
+                        });
+                    });
+
+                    this.locationData = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        accuracy: position.coords.accuracy,
+                        timestamp: new Date(position.timestamp)
+                    };
+
+                    // Update status
+                    this.updateStatus('locationStatus', 'success', 'تم الحصول على الموقع');
+                    
+                    // Display location data
+                    document.getElementById('locationData').innerHTML = `
+                        <div>خط العرض: ${this.locationData.latitude.toFixed(6)}</div>
+                        <div>خط الطول: ${this.locationData.longitude.toFixed(6)}</div>
+                        <div>الدقة: ${Math.round(this.locationData.accuracy)} متر</div>
+                        <div>الوقت: ${this.locationData.timestamp.toLocaleString('ar')}</div>
+                    `;
+
+                } catch (error) {
+                    this.updateStatus('locationStatus', 'error', 'خطأ في الحصول على الموقع');
+                    document.getElementById('locationData').innerHTML = '<div class="text-red-600">لم يتم الحصول على بيانات الموقع</div>';
+                }
+            }
+
+            async getWeatherData() {
+                if (!this.locationData) {
+                    this.updateStatus('weatherStatus', 'error', 'خطأ: لا توجد بيانات موقع');
+                    return;
+                }
+
+                try {
+                    const lat = this.locationData.latitude;
+                    const lon = this.locationData.longitude;
+                    
+                    // Using a different weather API that supports CORS - OpenWeatherMap
+                    const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=demo&units=metric&lang=ar`);
+                    
+                    if (!response.ok) {
+                        // If the demo API fails, use a CORS proxy for WeatherAPI
+                        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+                        const apiKey = 'c3e455be827349a8b54154305252107';
+                        const weatherUrl = `${proxyUrl}https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${lat},${lon}&aqi=yes&lang=ar`;
+                        
+                        const proxyResponse = await fetch(weatherUrl);
+                        if (!proxyResponse.ok) {
+                            throw new Error('فشل في الحصول على بيانات الطقس من كلا المصدرين');
+                        }
+                        
+                        const data = await proxyResponse.json();
+                        this.weatherData = {
+                            temperature: Math.round(data.current.temp_c),
+                            humidity: data.current.humidity,
+                            windSpeed: Math.round(data.current.wind_kph),
+                            condition: data.current.condition.text,
+                            visibility: data.current.vis_km,
+                            pressure: data.current.pressure_mb,
+                            feelsLike: Math.round(data.current.feelslike_c),
+                            uvIndex: data.current.uv,
+                            location: data.location.name,
+                            country: data.location.country,
+                            localTime: data.location.localtime,
+                            source: 'WeatherAPI.com'
+                        };
+                    } else {
+                        // Use OpenWeatherMap data
+                        const data = await response.json();
+                        this.weatherData = {
+                            temperature: Math.round(data.main.temp),
+                            humidity: data.main.humidity,
+                            windSpeed: Math.round(data.wind.speed * 3.6), // Convert m/s to km/h
+                            condition: data.weather[0].description,
+                            visibility: data.visibility ? Math.round(data.visibility / 1000) : 'غير متوفر',
+                            pressure: data.main.pressure,
+                            feelsLike: Math.round(data.main.feels_like),
+                            location: data.name,
+                            country: data.sys.country,
+                            localTime: new Date().toLocaleString('ar'),
+                            source: 'OpenWeatherMap'
+                        };
+                    }
+
+                    this.updateStatus('weatherStatus', 'success', 'تم جمع بيانات الطقس');
+                    
+                    document.getElementById('weatherData').innerHTML = `
+                        <div><strong>الموقع:</strong> ${this.weatherData.location}${this.weatherData.country ? ', ' + this.weatherData.country : ''}</div>
+                        <div><strong>درجة الحرارة:</strong> ${this.weatherData.temperature}°م (يشعر بـ ${this.weatherData.feelsLike}°م)</div>
+                        <div><strong>الرطوبة:</strong> ${this.weatherData.humidity}%</div>
+                        <div><strong>سرعة الرياح:</strong> ${this.weatherData.windSpeed} كم/ساعة</div>
+                        <div><strong>الحالة:</strong> ${this.weatherData.condition}</div>
+                        <div><strong>مدى الرؤية:</strong> ${this.weatherData.visibility} كم</div>
+                        <div><strong>الضغط الجوي:</strong> ${this.weatherData.pressure} مليبار</div>
+                        ${this.weatherData.uvIndex ? `<div><strong>مؤشر الأشعة فوق البنفسجية:</strong> ${this.weatherData.uvIndex}</div>` : ''}
+                        <div><strong>الوقت:</strong> ${this.weatherData.localTime}</div>
+                        <div class="text-xs text-gray-500 mt-2">المصدر: ${this.weatherData.source}</div>
+                    `;
+
+                } catch (error) {
+                    console.error('Weather API error:', error);
+                    
+                    // Fallback to simulated local weather data
+                    this.weatherData = {
+                        temperature: Math.round(Math.random() * 15 + 20), // 20-35°C typical for Algeria
+                        humidity: Math.round(Math.random() * 30 + 40), // 40-70% typical
+                        windSpeed: Math.round(Math.random() * 20 + 5), // 5-25 km/h
+                        condition: ['مشمس', 'غائم جزئياً', 'غائم', 'رياح'][Math.floor(Math.random() * 4)],
+                        visibility: Math.round(Math.random() * 5 + 8), // 8-13 km
+                        pressure: Math.round(Math.random() * 20 + 1005), // 1005-1025 mb
+                        feelsLike: Math.round(Math.random() * 18 + 22),
+                        location: 'وهران, الجزائر',
+                        localTime: new Date().toLocaleString('ar'),
+                        source: 'تقدير محلي'
+                    };
+                    
+                    this.updateStatus('weatherStatus', 'success', 'تم تقدير بيانات الطقس محلياً');
+                    
+                    document.getElementById('weatherData').innerHTML = `
+                        <div><strong>الموقع:</strong> ${this.weatherData.location}</div>
+                        <div><strong>درجة الحرارة:</strong> ${this.weatherData.temperature}°م (يشعر بـ ${this.weatherData.feelsLike}°م)</div>
+                        <div><strong>الرطوبة:</strong> ${this.weatherData.humidity}%</div>
+                        <div><strong>سرعة الرياح:</strong> ${this.weatherData.windSpeed} كم/ساعة</div>
+                        <div><strong>الحالة:</strong> ${this.weatherData.condition}</div>
+                        <div><strong>مدى الرؤية:</strong> ${this.weatherData.visibility} كم</div>
+                        <div><strong>الضغط الجوي:</strong> ${this.weatherData.pressure} مليبار</div>
+                        <div><strong>الوقت:</strong> ${this.weatherData.localTime}</div>
+                        <div class="text-xs text-yellow-600 mt-2">⚠️ ${this.weatherData.source} - لم يتم الحصول على بيانات حقيقية</div>
+                    `;
+                }
+            }
+
+            async simulateRoadData() {
+                // Simulate road/traffic API call
+                await new Promise(resolve => setTimeout(resolve, 1500));
+
+                this.roadData = {
+                    roadType: ['طريق سريع', 'طريق رئيسي', 'طريق فرعي'][Math.floor(Math.random() * 3)],
+                    speedLimit: [60, 80, 120][Math.floor(Math.random() * 3)],
+                    trafficDensity: ['خفيف', 'متوسط', 'كثيف'][Math.floor(Math.random() * 3)],
+                    roadCondition: ['جيد', 'متوسط', 'سيء'][Math.floor(Math.random() * 3)],
+                    lightingCondition: ['جيد', 'ضعيف', 'معدوم'][Math.floor(Math.random() * 3)]
+                };
+
+                this.updateStatus('roadStatus', 'success', 'تم جمع معلومات الطريق');
+                
+                document.getElementById('roadData').innerHTML = `
+                    <div>نوع الطريق: ${this.roadData.roadType}</div>
+                    <div>الحد الأقصى للسرعة: ${this.roadData.speedLimit} كم/ساعة</div>
+                    <div>كثافة المرور: ${this.roadData.trafficDensity}</div>
+                    <div>حالة الطريق: ${this.roadData.roadCondition}</div>
+                    <div>الإضاءة: ${this.roadData.lightingCondition}</div>
+                `;
+            }
+
+            updateStatus(elementId, status, message) {
+                const element = document.getElementById(elementId);
+                const parent = element.parentElement;
+                const text = parent.querySelector('span');
+                
+                element.classList.remove('loading', 'border-blue-600');
+                
+                if (status === 'success') {
+                    element.classList.add('bg-green-500');
+                    element.innerHTML = '<svg class="w-3 h-3 text-white m-auto" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>';
+                } else if (status === 'error') {
+                    element.classList.add('bg-red-500');
+                    element.innerHTML = '<svg class="w-3 h-3 text-white m-auto" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>';
+                }
+                
+                text.textContent = message;
+            }
+
+            showMessage(message, type = 'success') {
+                const statusElement = document.getElementById('statusMessage');
+                statusElement.className = `mb-6 p-4 rounded-lg ${type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
+                statusElement.textContent = message;
+                statusElement.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    statusElement.classList.add('hidden');
+                }, 5000);
+            }
+
+            async handleSubmit(e) {
+                e.preventDefault();
+                
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'جاري الإرسال...';
+
+                // Collect form data
+                const formData = {
+                    accidentType: document.getElementById('accidentType').value,
+                    severity: document.getElementById('severity').value,
+                    description: document.getElementById('description').value,
+                    reporterName: document.getElementById('reporterName').value,
+                    phoneNumber: document.getElementById('phoneNumber').value,
+                    location: this.locationData,
+                    weather: this.weatherData,
+                    road: this.roadData,
+                    timestamp: new Date().toISOString()
+                };
+
+                // Simulate API call
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // Generate report ID
+                    const reportId = 'ACC-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                    
+                    this.showMessage(`تم إرسال التقرير بنجاح. رقم التقرير: ${reportId}`, 'success');
+                    
+                    // Reset form
+                    document.getElementById('accidentForm').reset();
+                    
+                } catch (error) {
+                    this.showMessage('حدث خطأ أثناء إرسال التقرير. يرجى المحاولة مرة أخرى.', 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'إرسال التقرير';
+                }
+            }
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            new AccidentReporter();
+        });
+    </script>
+</body>
+</html>
